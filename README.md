@@ -53,11 +53,10 @@ docker compose up -d
 
 Then open `http://localhost:5388`.
 
-### Build and push Docker image to Docker Hub
+### Docker image
 
-```powershell
-docker login
-.\docker-push.ps1 -Username your_dockerhub_username
+```
+https://hub.docker.com/repository/docker/mijalko/subtitle-fixer/general
 ```
 
 ---
