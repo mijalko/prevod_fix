@@ -59,6 +59,8 @@ Then open `http://localhost:5388`.
 https://hub.docker.com/repository/docker/mijalko/subtitle-fixer/general
 ```
 
+![image](https://github.com/mijalko/prevod_fix/blob/main/ScreenshotSubtitleFixer.png)
+
 ---
 
 ## Usage
