@@ -1,0 +1,273 @@
+@page
+@model PrevodWeb.Pages.IndexModel
+@{
+    Layout = null;
+    var log          = Model.Log          ?? TempData["Log"]?.ToString();
+    var downloadId   = Model.DownloadId   ?? TempData["DownloadId"]?.ToString();
+    var downloadName = Model.DownloadName ?? TempData["DownloadName"]?.ToString();
+    var error        = Model.ErrorMessage ?? TempData["ErrorMessage"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Subtitle Fixer</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            background: #1a1f2e;
+            border: 1px solid #2d3650;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 640px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .header svg { flex-shrink: 0; }
+
+        h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #f0f4ff;
+        }
+        h1 span { color: #6b9fff; }
+
+        .drop-zone {
+            border: 2px dashed #3a4a72;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .drop-zone:hover, .drop-zone.drag-over {
+            border-color: #6b9fff;
+            background: rgba(107,159,255,.05);
+        }
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+        .drop-zone-icon { margin-bottom: .75rem; opacity: .7; }
+        .drop-zone p { color: #94a3b8; font-size: .95rem; }
+        .drop-zone p strong { color: #6b9fff; }
+        .file-name {
+            margin-top: .5rem;
+            font-size: .85rem;
+            color: #6b9fff;
+            font-weight: 600;
+            min-height: 1.2em;
+        }
+
+        .offset-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .offset-row label {
+            font-size: .9rem;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+        .offset-row input[type="number"] {
+            flex: 1;
+            background: #0f1117;
+            border: 1px solid #2d3650;
+            border-radius: 8px;
+            color: #f0f4ff;
+            font-size: 1rem;
+            padding: .55rem .9rem;
+            outline: none;
+            transition: border-color .2s;
+        }
+        .offset-row input[type="number"]:focus { border-color: #6b9fff; }
+        .offset-hint { font-size: .78rem; color: #64748b; }
+
+        .btn {
+            width: 100%;
+            padding: .75rem;
+            background: #2952cc;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .btn:hover { background: #3b66e8; }
+        .btn:active { background: #1e3ea8; }
+
+        .alert {
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            margin-top: 1.5rem;
+            font-size: .9rem;
+        }
+        .alert-error   { background: rgba(220,38,38,.15);  border: 1px solid rgba(220,38,38,.4);  color: #fca5a5; }
+        .alert-success { background: rgba(34,197,94,.12);  border: 1px solid rgba(34,197,94,.35); color: #86efac; }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem;
+            margin-top: 1rem;
+            padding: .6rem 1.2rem;
+            background: #15803d;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: .95rem;
+            transition: background .2s;
+        }
+        .download-btn:hover { background: #16a34a; }
+
+        .log-box {
+            margin-top: 1rem;
+            background: #0f1117;
+            border: 1px solid #2d3650;
+            border-radius: 8px;
+            padding: .75rem 1rem;
+            font-family: 'Cascadia Code', 'Consolas', monospace;
+            font-size: .82rem;
+            color: #94a3b8;
+            white-space: pre-wrap;
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        footer {
+            margin-top: 2.5rem;
+            font-size: .78rem;
+            color: #334155;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="48" height="48" rx="8" fill="#12346B"/>
+            <circle cx="24" cy="16" r="8" stroke="white" stroke-width="2.5"/>
+            <line x1="24" y1="16" x2="24" y2="9"  stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <line x1="24" y1="16" x2="29" y2="12" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+            <rect x="7"  y="30" width="34" height="4.5" rx="2" fill="white"/>
+            <rect x="7"  y="37" width="22" height="4.5" rx="2" fill="white"/>
+        </svg>
+        <div>
+            <h1>Subtitle <span>Fixer</span></h1>
+            <p style="font-size:.83rem;color:#64748b;margin-top:.15rem">Shift, clean and repair .srt / .sub files</p>
+        </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#6b9fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+            </div>
+            <p>Drop your subtitle file here or <strong>browse</strong></p>
+            <div class="file-name" id="fileName"></div>
+            <input type="file" name="subtitleFile" id="fileInput" accept=".srt,.sub" required />
+        </div>
+
+        <div class="offset-row">
+            <label for="offsetInput">Time offset (seconds)</label>
+            <div style="flex:1">
+                <input type="number" id="offsetInput" name="offsetSeconds"
+                       value="0" step="0.5" min="-99999" max="99999" />
+                <div class="offset-hint">Negative = shift earlier &nbsp;|&nbsp; Positive = shift later</div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn">Fix Subtitles</button>
+    </form>
+
+    @if (!string.IsNullOrEmpty(error))
+    {
+        <div class="alert alert-error">@error</div>
+    }
+
+    @if (!string.IsNullOrEmpty(downloadId) && !string.IsNullOrEmpty(downloadName))
+    {
+        <div class="alert alert-success">
+            File processed successfully.
+            <br />
+            <a class="download-btn"
+               href="/Download?id=@downloadId&filename=@Uri.EscapeDataString(downloadName)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7 10 12 15 17 10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download @downloadName
+            </a>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(log))
+    {
+        <div class="log-box">@log</div>
+    }
+</div>
+
+<footer>Subtitle Fixer &mdash; .srt &amp; .sub repair tool</footer>
+
+<script>
+    const input    = document.getElementById('fileInput');
+    const fileName = document.getElementById('fileName');
+    const dropZone = document.getElementById('dropZone');
+
+    input.addEventListener('change', () => {
+        fileName.textContent = input.files[0]?.name ?? '';
+    });
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) {
+            input.files = e.dataTransfer.files;
+            fileName.textContent = input.files[0].name;
+        }
+    });
+</script>
+
+</body>
+</html>
