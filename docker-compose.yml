@@ -1,0 +1,8 @@
+services:
+  subtitle-fixer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5388:5388"
+    restart: unless-stopped
